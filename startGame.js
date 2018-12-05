@@ -1,0 +1,24 @@
+const crypto = require('crypto')
+
+const secret = 'mitropia'
+
+function startGame (boardSize = 5, playerCount = 2) {
+    const gameId = crypto.createHmac('sha256', secret).update(Date.now().toString(36)).digest('hex').slice(32)
+
+    const board = {
+        gameId: gameId,
+        playerCount: playerCount,
+        boardStatus: {
+            boardSize: boardSize,
+            player1: [],
+            player2: [],
+            mountains: [],
+            tunnels: [],
+            castles: []
+        }
+    }
+
+    return board
+}
+
+function terrainFeatures()

@@ -1,120 +1,328 @@
 swagger: '2.0'
 info:
-  version: '1.0'
-  title: "API team test"
-  description: Polls is a simple API allowing consumers to view polls and vote in them.
-  license:
-    name: MIT
-    url: https://github.com/apiaryio/polls-api/blob/master/LICENSE
-host: polls.apiblueprint.org
-basePath: /
-schemes:
-- http
-consumes:
-- application/json
+  version: '1.0.0'
+  title: "Mitropia API"
+  description: |
+    Mitropia API specification
+    
+
 produces:
-- application/json
-paths:
-  /questions:
-    x-summary: Questions Collection
+  - application/hal+json      # Representation message format
+  - application/problem+json  # Error message format
+
+schemes:
+  - https
+
+securityDefinitions:
+  oauth2:
+    type: oauth2
+    authorizationUrl: 'http://example/oauth'
+    description: |
+      security for Mitropia API TBD
+    flow: implicit
+    scopes:
+      'write:products': modify products
+      'write:wishlist': read and modify your wishlist
+      'read:reviews': read all reviews
+      'write:reviews': write reviews
+      'read:reviews:stats': read review statistics
+      'read:users': read users
+      'write:users': modify users
+      'read:wishlist' : read your wishlist
+
+paths:    
+  /games:
+    x-summary: Games
+
     get:
-      summary: List All Questions
+      summary: Retrieve Games List
+      description: Retrieve list of all the active Mitropia game instances
+
       responses:
         200:
-          description: Successful Response
+          description: List of active games
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Question'
-          examples:
-            application/json:
-              - question: Favourite programming language?
-                published_at: '2015-08-05T08:40:51.620Z'
-                choices:
-                  - choice: Swift
-                    votes: 2048
-                  - choice: Python
-                    votes: 1024
-                  - choice: Objective-C
-                    votes: 512
-                  - choice: Ruby
-                    votes: 256
+            $ref: '#/definitions/halGames'
     post:
-      description: >-
-        You may create your own question using this action. It takes a JSON
-        object containing a question and a collection of answers in the
-        form of choices.
-      summary: Create a New Question
+      summary: Start new game
+      description: Create a new game instance
       parameters:
-        - name: body
+        - name: gameSpecs
           in: body
+          description: JSON body with initial game specifications
+          schema: 
+            $ref: '#/definitions/gameSpecs'
+      responses:      
+        201:
+          description: Game created
+          schema:
+            $ref: '#/definitions/halGameObject'
+
+  /games/{game_id}:
+    x-summary: Specific game
+    get:
+      summary: Retrieve Games List
+      description: Retrieve list of all the active Mitropia game instances
+      parameters:
+        - name: game_id
+          in: path
+          description: game unique identifier
+          required: true
+          type: string
+
+      responses:
+        200:
+          description: Game details
+          schema:
+            $ref: '#/definitions/halGameObject'
+    delete:
+      summary: Delete a game
+      description: Delete an active game
+      parameters:
+        - name: game_id
+          in: path
+          description: game unique identifier
+          required: true
+          type: string
+      responses:
+        204:
+          description: Game deleted
+
+  /games/{game_id}/moves:
+    x-summary: Moves
+    get: 
+      summary: List all the moves in a specific game
+      description: Unordered list of all the moves performed in a specific game by each player
+      parameters:
+        - name: game_id
+          in: path
+          description: game unique identifier
+          required: true
+          type: string
+        - name: player
+          in: query
+          description: Filter moves only by a specific player
+          required: false
+          type: string
+      responses:
+        200:
+          description: List of moves
+          schema:
+            $ref: '#/definitions/halMoves'
+    post:
+      summary: Play move
+      description: Play a new move. Validation is performed and the response depends upon it.
+      parameters:
+        - name: game_id
+          in: path
+          description: game unique identifier
+          required: true
+          type: string
+        - name: moveDetails
+          in: body
+          description: New move coordinates
           required: true
           schema:
-            $ref: '#/definitions/QuestionRequest'
-      responses:
+            $ref: '#/definitions/newMove'
+      responses:      
         201:
-          description: ''
+          description: Move played
           schema:
-            $ref: '#/definitions/Question'
-          examples:
-            application/json:
-                question: Favourite programming language?
-                published_at: '2015-08-05T08:40:51.620Z'
-                choices:
-                  - choice: Swift
-                    votes: 0
-                  - choice: Python
-                    votes: 0
-                  - choice: Objective-C
-                    votes: 0
-                  - choice: Ruby
-                    votes: 0
+            $ref: '#/definitions/halGameObject'
+
 definitions:
-  Question:
-    title: Question
+  coordinates:
     type: object
     properties:
-      question:
+      q:
+        type: number
+        format: integer
+      r:
+        type: number
+        format: integer
+  halGameObject:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties: 
+          gameId: 
+            type: string
+          playerCount:
+            type: number
+            format: integer
+          boardStatus:
+            type: object
+            properties:
+              boardSize:
+                type: number
+                format: integer
+              player1:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              player2:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              mountains:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              tunnels:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              castles:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+  halMoves:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties:
+          gameId:
+            type: string
+          player1:
+            type: array
+            items:
+              $ref: '#/definitions/coordinates'
+          player2:
+            type: array
+            items:
+              $ref: '#/definitions/coordinates'
+
+  newMove:
+    type: object
+    properties: 
+      playerId:
         type: string
-      published_at:
-        type: string
-      choices:
+      coordinates:
+        $ref: '#/definitions/coordinates'
+
+  gameSpecs:
+    type: object
+    properties: 
+      boardSize:
+        type: number
+        format: integer
+      playerCount:
+        type: number
+        format: integer
+      mountains:
         type: array
         items:
-          $ref: '#/definitions/Choice'
-    required:
-      - question
-      - published_at
-      - choices
-  Choice:
-    title: Choice
-    type: object
-    properties:
-      votes:
-        type: integer
-        format: int32
-      choice:
-        type: string
-    required:
-      - votes
-      - choice
-  QuestionRequest:
-    title: Question Request
-    type: object
-    properties:
-      question:
-        type: string
-      choices:
+          $ref: '#/definitions/coordinates'
+      tunnels:
         type: array
         items:
-          type: string
+          $ref: '#/definitions/coordinates'
+      castles:
+        type: array
+        items:
+          $ref: '#/definitions/coordinates'
+
+  halGames:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties:
+          games:
+            type: array
+            items:
+              type: string
+  #
+  # -- DO NOT EDIT BEYOND THIS POINT --
+  #
+
+  # Media Types Definitions
+
+  #
+  # application/problem+json
+  #
+  problemDetail:
+    type: object
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      status:
+        type: number
+        format: integer
+      detail:
+        type: string
+      instance:
+        type: string
     required:
-      - question
-      - choices
-    example:
-      question: Favourite programming language?
-      choices:
-        - Swift
-        - Python
-        - Objective-C
-        - Ruby
+      - title
+      - detail
+
+  #
+  # application/hal+json defintion
+  #
+  halLinkObject:
+    type: object
+    required:
+      - href
+    properties:
+      href:
+        type: string
+      templated:
+        type: boolean
+      type:
+        type: string
+      deprecation:
+        type: string
+      name:
+        type: string
+      profile:
+        type: string
+      title:
+        type: string
+      hreflang:
+        type: string
+
+  halCuriesLink:
+    title: HAL Curies Link
+    allOf:
+      - type: object
+        properties:
+          templated:
+            enum:
+              - true
+        required:
+          - templated
+      - $ref: '#/definitions/halLinkObject'
+
+  halResource:
+    title: HAL Resource Object
+    type: object
+    properties:
+      _links:
+        type: object
+        additionalProperties:
+          # WARN: Should be "anyOf" but "anyOf" isn't supported in Swagger 2.0
+          allOf:
+            - $ref: '#/definitions/halLinkObject'
+            - type: array
+              items:
+                - $ref: '#/definitions/halLinkObject'
+        properties:
+          curies:
+            # WARN: Should be "anyOf" but "anyOf" isn't supported in Swagger 2.0
+            allOf:
+              - $ref: '#/definitions/halCuriesLink'
+              - type: array
+                items:
+                  - $ref: '#/definitions/halCuriesLink'
+      _embedded:
+        type: object
+        additionalProperties: true
+        # WARN: Apiary doesn't support circular references
+        # additionalProperties:
+        #   anyOf:
+        #     - $ref: '#/definitions/hal_resource'
+        #     - type: array
+        #       items:
+        #         - $ref: '#/definitions/hal_resource'

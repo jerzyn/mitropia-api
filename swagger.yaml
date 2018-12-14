@@ -30,20 +30,7 @@ securityDefinitions:
       'write:users': modify users
       'read:wishlist' : read your wishlist
 
-paths:
-  /:
-    x-summary: Wishlist
-
-    get:
-      summary: The API Root
-      description: Retrieve the API Root
-
-      responses:
-        200:
-          description: The root of the API
-          schema:
-            $ref: '#/definitions/halRoot'
-    
+paths:    
   /games:
     x-summary: Games
 
@@ -87,7 +74,7 @@ paths:
         200:
           description: Game details
           schema:
-            $ref: '#/definitions/halGameDetails'
+            $ref: '#/definitions/halGameObject'
     delete:
       summary: Delete a game
       description: Delete an active game
@@ -142,10 +129,104 @@ paths:
           description: Move played
           schema:
             $ref: '#/definitions/halGameObject'
-            
-definitions:
-  
 
+definitions:
+  coordinates:
+    type: object
+    properties:
+      q:
+        type: number
+      r:
+        type: number
+  halGameObject:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties: 
+          gameId: 
+            type: string
+          playerCount:
+            type: number
+            format: integer
+          boardStatus:
+            type: object
+            properties:
+              boardSize:
+                type: number
+                format: integer
+              player1:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              player2:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              mountains:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              tunnels:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+              castles:
+                type: array
+                items:
+                  $ref: '#/definitions/coordinates'
+  halMoves:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties:
+          gameId:
+            type: string
+          player1:
+            type: array
+            items:
+              $ref: '#/definitions/coordinates'
+          player2:
+            type: array
+            items:
+              $ref: '#/definitions/coordinates'
+
+  newMove:
+    type: object
+    properties: 
+      playerId:
+        type: string
+      coordinates:
+        $ref: '#/definitions/coordinates'
+
+  gameSpecs:
+    type: object
+    properties: 
+      boardSize:
+        type: number
+      playerCount:
+        type: number
+      mountains:
+        type: array
+        items:
+          $ref: '#/definitions/coordinates'
+      tunnels:
+        type: array
+        items:
+          $ref: '#/definitions/coordinates'
+      castles:
+        type: array
+        items:
+          $ref: '#/definitions/coordinates'
+
+  halGames:
+    allOf:
+      - $ref: '#/definitions/halResource'
+      - type: object
+        properties:
+          games:
+            type: array
+            items:
+              type: string
   #
   # -- DO NOT EDIT BEYOND THIS POINT --
   #

@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const redis = require('redis')
 
 const secret = 'mitropia'
-const client = redis.createClient()
+const client = redis.createClient(80)
 
 client.on('connect', function() {
     console.log('connected')

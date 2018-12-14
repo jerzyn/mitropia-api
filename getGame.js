@@ -5,11 +5,14 @@ function getGame(gameId) {
         nextPlayer: "qwerty",
         boardStatus: {
             boardSize: 5,
-            player1: [],
-            player2: [],
-            mountains: [],
-            tunnels: [],
-            castles: []
+            player1: [{}],
+            player2: [{}],
+            mountains: [{}],
+            tunnels: [{}],
+            castles: [{}]
+        },
+        _links: {
+            _self: "/games/xxxxx"
         }
     }
     return boardStatus

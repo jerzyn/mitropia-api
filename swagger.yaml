@@ -136,8 +136,10 @@ definitions:
     properties:
       q:
         type: number
+        format: integer
       r:
         type: number
+        format: integer
   halGameObject:
     allOf:
       - $ref: '#/definitions/halResource'
@@ -203,8 +205,10 @@ definitions:
     properties: 
       boardSize:
         type: number
+        format: integer
       playerCount:
         type: number
+        format: integer
       mountains:
         type: array
         items:
@@ -245,6 +249,7 @@ definitions:
         type: string
       status:
         type: number
+        format: integer
       detail:
         type: string
       instance:

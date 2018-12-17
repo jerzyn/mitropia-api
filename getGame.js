@@ -1,3 +1,11 @@
+const redis = require('redis')
+
+const client = redis.createClient()
+
+client.on('connect', function() {
+    console.log('connected')
+});
+
 function getGame(gameId) {
     let boardStatus = {
         gameId: "xxxxx",
@@ -17,3 +25,13 @@ function getGame(gameId) {
     }
     return boardStatus
 }
+
+function getGames() {
+    let games = client.get('*')
+    
+    console.log(games)
+
+    return games
+}
+
+console.log(getGames())

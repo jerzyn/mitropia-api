@@ -23,7 +23,8 @@ function startGame (boardSize = 5, playerCount = 2) {
             castles: []
         }
     }
-    client.set(gameId, board)
+    console.log(gameId)
+    client.set(gameId, JSON.stringify(board))
 
     return board
 }
